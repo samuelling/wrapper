@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shrink-Wrapped Menagerie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Specimen cabinet: one dark world, bone lit from the upper left, brass label plates. */
+  --ground: #101412;
+  --panel: #171c19;
+  --rule: #2b332e;
+  --bone: #ebe4d2;
+  --muted: #98a097;
+  --brass: #c9a650;
+  --brass-ink: #1d1708;
+  --display: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
+  --display-sc: 'IM Fell English SC', 'Iowan Old Style', Georgia, serif;
+  --body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ground); color: var(--bone); }
+body { font-family: var(--body); font-stretch: 92%; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 22px 16px 48px; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 7vw, 58px); line-height: 0.98; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 em { color: var(--brass); }
+.lede { margin: 6px 0 0; max-width: 62ch; color: var(--muted); font-size: 15px; }
+.picker { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; scrollbar-width: none; }
+.picker::-webkit-scrollbar { display: none; }
+.picker button { flex: 0 0 auto; font: 600 14px/1 var(--body); font-stretch: 85%; letter-spacing: 0.02em; color: var(--bone); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 10px 14px; cursor: pointer; }
+.picker button[aria-pressed="true"] { background: var(--bone); color: var(--ground); border-color: var(--bone); }
+.picker button:focus-visible, .seg button:focus-visible, .stops button:focus-visible, .play:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.case { position: relative; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: #0c0f0d; }
+.case canvas { display: block; width: 100%; height: auto; aspect-ratio: 900 / 558; }
+.plate { position: absolute; left: 12px; bottom: 12px; background: linear-gradient(160deg, #d9b968, var(--brass) 45%, #a8873a); color: var(--brass-ink); padding: 7px 12px 8px; border-radius: 2px; box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 2px 8px rgba(0,0,0,0.5); display: grid; gap: 1px; max-width: calc(100% - 24px); }
+.plate .nm { font-family: var(--display-sc); font-size: 17px; line-height: 1.05; letter-spacing: 0.03em; }
+.plate .lt { font-family: var(--display); font-style: italic; font-size: 14px; line-height: 1.1; }
+.stagetag { position: absolute; right: 12px; top: 12px; font: 600 11px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone); background: rgba(16,20,18,0.72); border: 1px solid var(--rule); padding: 7px 9px; border-radius: 3px; font-variant-numeric: tabular-nums; }
+.busy { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-style: italic; font-size: 20px; color: var(--muted); background: rgba(12,15,13,0.55); opacity: 0; pointer-events: none; transition: opacity .15s; }
+.busy.on { opacity: 1; }
+.controls { display: grid; gap: 12px; }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.seg button { font: 600 13px/1 var(--body); font-stretch: 85%; letter-spacing: 0.04em; padding: 10px 14px; background: transparent; color: var(--muted); border: 0; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--bone); box-shadow: inset 0 -2px 0 var(--brass); }
+.play { font: 600 13px/1 var(--body); letter-spacing: 0.04em; padding: 10px 14px; border-radius: 4px; border: 1px solid var(--rule); background: transparent; color: var(--bone); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.play svg { width: 12px; height: 12px; fill: currentColor; }
+.scale { font-size: 13px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.slider { display: grid; gap: 6px; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent; margin: 0; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #e9e2cf 0%, #c49e92 50%, var(--brass) 100%); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #e9e2cf 0%, #c49e92 50%, var(--brass) 100%); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -11px; border-radius: 50%; background: var(--bone); border: 3px solid var(--ground); box-shadow: 0 0 0 1px var(--bone), 0 2px 6px rgba(0,0,0,.6); }
+input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--bone); border: 3px solid var(--ground); box-shadow: 0 0 0 1px var(--bone); }
+.stops { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.stops button { background: none; border: 0; color: var(--muted); font: 400 18px/1.1 var(--display); padding: 4px 0; cursor: pointer; }
+.stops button:nth-child(1) { text-align: left; } .stops button:nth-child(2) { text-align: center; } .stops button:nth-child(3) { text-align: right; }
+.stops button.on { color: var(--bone); }
+.notes { display: grid; grid-template-columns: 1.35fr 1fr; gap: 26px; border-top: 1px solid var(--rule); padding-top: 18px; }
+.notes h2 { font: 600 11px/1 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--brass); margin: 0 0 10px; }
+.notes ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: n; }
+.notes li { counter-increment: n; display: grid; grid-template-columns: 22px 1fr; font-size: 15px; max-width: 62ch; }
+.notes li::before { content: counter(n); font-family: var(--display); font-style: italic; color: var(--brass); font-size: 17px; line-height: 1.3; }
+.notes p { margin: 0; font-family: var(--display); font-size: 18px; line-height: 1.42; max-width: 48ch; }
+footer { border-top: 1px solid var(--rule); padding-top: 14px; font-size: 13px; color: var(--muted); max-width: 72ch; }
+footer i { font-family: var(--display); font-size: 15px; color: var(--bone); }
+@media (max-width: 680px) {
+  .notes { grid-template-columns: 1fr; gap: 20px; }
+  .scale { margin-left: 0; width: 100%; }
+  .plate { position: static; display: flex; align-items: baseline; gap: 10px; max-width: none; border-radius: 0; box-shadow: none; padding: 7px 12px; }
+  .plate .nm { font-size: 15px; } .plate .lt { font-size: 13px; }
+  .stagetag { right: 8px; top: 8px; font-size: 10px; padding: 5px 7px; }
+  .stops button { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Shrink-wrapped <em>menagerie</em></h1>
+    <p class="lede">Dinosaur art often stretches skin straight over the skeleton. Here are six living animals given the same treatment, so you can slide from bare bone to shrink-wrap to the animal as it actually looks.</p>
+  </header>
+
+  <nav class="picker" id="picker" aria-label="Choose an animal"></nav>
+
+  <div class="case">
+    <canvas id="cv" width="900" height="558" aria-label="Animal reconstruction"></canvas>
+    <div class="stagetag" id="stagetag">Shrink-wrapped</div>
+    <div class="plate"><span class="nm" id="pname"></span><span class="lt" id="platin"></span></div>
+    <div class="busy" id="busy">Articulating…</div>
+  </div>
+
+  <div class="controls">
+    <div class="slider">
+      <label for="t" style="position:absolute;left:-9999px">Reconstruction stage</label>
+      <input type="range" id="t" min="0" max="200" step="1" value="100">
+      <div class="stops" id="stops">
+        <button data-t="0">Skeleton</button>
+        <button data-t="100" class="on">Shrink-wrapped</button>
+        <button data-t="200">Alive</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="View">
+        <button id="vBody" aria-pressed="true">Whole animal</button>
+        <button id="vSkull" aria-pressed="false">Skull</button>
+      </div>
+      <button class="play" id="play" aria-pressed="false"><svg viewBox="0 0 12 12" id="playIcon"><path d="M2 1l9 5-9 5z"/></svg><span id="playLbl">Play the morph</span></button>
+      <span class="scale" id="size"></span>
+    </div>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>What the bones hide</h2>
+      <ol id="hides"></ol>
+    </div>
+    <div>
+      <h2>The palaeo parallel</h2>
+      <p id="parallel"></p>
+    </div>
+  </section>
+
+  <footer>
+    The idea comes from <i>All Yesterdays</i> (2012) by John Conway, C. M. Kosemen and Darren Naish, which drew modern animals as if they had been reconstructed from bones alone. The skeletons here are simplified side-view diagrams drawn for this page, not traced from specimens. The shrink-wrap stage is computed: skin is pulled tight over the bones, bridges small gaps and sags into every hollow.
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script src="animals.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
