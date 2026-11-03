@@ -1,6 +1,21 @@
 # Wrapper: the Shrink-Wrap Gallery
 
-A walkable 3D hall modelled on the Grande Galerie de l'Évolution in Paris. Six living animals march in a procession down the nave at real scale: an African elephant, an American bison, a Nile crocodile, a mute swan, a house cat and a barn owl. Each one can be slid from **skeleton** → **shrink-wrapped** → **alive**, the way dinosaurs are too often reconstructed. In 3D, the skin grows out of the bones and then fills out into muscle, fur and feathers.
+A walkable 3D hall modelled on the Grande Galerie de l'Évolution in Paris. Six living animals march in a procession down the nave at real scale: an African elephant, an American bison, a Nile crocodile, a mute swan, a house cat and a barn owl. Each one slides through four stages: **skeleton** → **shrink-wrapped** → **the curator's model** → **alive**.
+
+The curator's model follows the closing section of *All Yesterdays*, where living animals are restored by people who have only ever seen their bones. The gallery speaks in the curator's voice until the reveal:
+
+| Bones of… | Curator's restoration | The misreading |
+|---|---|---|
+| African elephant | *Nasocrista ingens*, the great crest-nose | The forehead nasal opening becomes an inflatable display hood; no trunk, no ears, tiptoe feet |
+| American bison | *Velifer pratensis*, the sail-backed grazer | Tall shoulder spines become a striped Dimetrodon-style sail |
+| Nile crocodile | *Labiosuchus fluvialis*, the lipped river-hunter | Lizard-style lips over the teeth, and a crest along the back plates |
+| Mute swan | *Ophidornis squamatus*, the scaly snake-bird | A scaly, slender-necked wader with a paddle for a wing and unwebbed toes |
+| House cat | *Nudodon parvus*, the little bare-tooth | Hairless and lipless, with bare fangs and no ears or whiskers |
+| Barn owl | *Oculator gracilis*, the slender eye-bearer | A bald, gangly stalker with huge staring eyes and bare legs |
+
+![The curator's models](docs/curators.png)
+
+In 3D the skin grows out of the bones, swells into the curator's guess, and then reshapes into the real animal.
 
 ![The gallery](docs/gallery.png)
 
@@ -26,7 +41,9 @@ Open `index.html` from a static server (for example `python3 -m http.server`) or
   - **shrink-wrap**: a morphological closing of the bones, so skin can't squeeze between ribs but sinks into every hollow, plus a skin thickness, with teeth kept sharp
   - **alive**: wrap plus soft tissue, closed and smoothed, with fur displacement
 
-  Every wrap vertex is projected onto the bones, and every living vertex onto the wrap. Those projections are the morph targets that let the skin grow in real time. Output goes to `data/<id>.json`, with mesh arrays packed as base64.
+  - **curator**: wrap plus the curator's soft tissue (layer `ctissue` in the anatomy), with its own colours and eyes
+
+  Every wrap vertex is projected onto the bones, every curator vertex onto the wrap, and every living vertex onto the curator's model. Those projections are the morph targets that let the skin grow in real time. Output goes to `data/<id>.json`, with mesh arrays packed as base64.
 - `js/specimen.js`: loads a baked animal into three morphing meshes, with coat colours computed from the anatomy file.
 - `js/hall.js` and `js/main.js`: the hall (glass roof, cast-iron columns, two balcony tiers, procession platform), navigation and the UI.
 

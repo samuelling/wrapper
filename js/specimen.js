@@ -83,7 +83,7 @@ export async function loadSpecimen(A, base) {
   const root = new THREE.Group(); root.name = A.id;
   const parts = {};
   const skin = A.skinCol, bone = A.boneCol;
-  for (const name of ['bone', 'wrap', 'alive']) {
+  for (const name of ['bone', 'wrap', 'curator', 'alive']) {
     const e = man.meshes[name];
     const pos = dequant(view(buf, e.pos), e.lo, e.rng);
     const index = view(buf, e.idx);
@@ -112,15 +112,16 @@ export async function loadSpecimen(A, base) {
     if (name === 'wrap') {
       for (let i = 0; i < n * 3; i++) { C[i] = lin(col[i]); C0[i] = lin(col0[i]); }
     } else {
-      const coat = view(buf, e.coat), ao = view(buf, e.ao);
+      // coat colours come from the pattern functions in anatomy.js, evaluated in side-view coordinates
+      const coat = view(buf, e.coat), ao = view(buf, e.ao), coat0 = e.coat0 ? view(buf, e.coat0) : null;
+      const endCoat = name === 'alive' ? A.coat : A.curator.coat, startCoat = A.curator.coat;
+      const W = (P, i) => [P[i * 3] * man.upm + man.xc, man.groundY - P[i * 3 + 1] * man.upm];
       for (let i = 0; i < n; i++) {
         const a = ao[i] / 255;
-        let c = [col[i * 3], col[i * 3 + 1], col[i * 3 + 2]];
-        if (coat[i]) {
-          const wx = pos[i * 3] * man.upm + man.xc, wy = man.groundY - pos[i * 3 + 1] * man.upm;
-          c = A.coat(wx, wy);
-        }
-        for (let k = 0; k < 3; k++) { C[i * 3 + k] = lin(c[k]) * a; C0[i * 3 + k] = lin(col0[i * 3 + k]) * a; }
+        let c = [col[i * 3], col[i * 3 + 1], col[i * 3 + 2]], c0 = [col0[i * 3], col0[i * 3 + 1], col0[i * 3 + 2]];
+        if (coat[i]) c = endCoat(...W(pos, i));
+        if (coat0 && coat0[i]) c0 = startCoat(...W(pos0, i));
+        for (let k = 0; k < 3; k++) { C[i * 3 + k] = lin(c[k]) * a; C0[i * 3 + k] = lin(c0[k]) * a; }
       }
       const gl = view(buf, e.gloss), G = new Float32Array(n);
       for (let i = 0; i < n; i++) G[i] = gl[i] / 255;
@@ -128,7 +129,7 @@ export async function loadSpecimen(A, base) {
     }
     g.setAttribute('color', new THREE.BufferAttribute(C, 3));
     g.setAttribute('color0', new THREE.BufferAttribute(C0, 3));
-    mat = morphMaterial({ roughness: name === 'wrap' ? 0.48 : 0.86, gloss: name === 'alive' });
+    mat = morphMaterial({ roughness: name === 'wrap' ? 0.48 : name === 'curator' ? 0.62 : 0.86, gloss: name !== 'wrap' });
     const m = new THREE.Mesh(g, mat);
     m.castShadow = true; m.receiveShadow = true;
     m.customDepthMaterial = morphDepth(mat);
@@ -155,26 +156,27 @@ export async function loadSpecimen(A, base) {
       }
       g.position.set(e.x, e.y, z); root.add(g); return g;
     };
-    eyes.push({ S: mk(e.rS, e.zS, true), L: mk(e.r, e.zL, false) });
+    if (e.stage === 'C') eyes.push({ C: mk(e.r, e.zL, false) });
+    else eyes.push({ S: mk(e.rS, e.zS, true), L: mk(e.r, e.zL, false) });
   }
   let stage = -1;
   function setStage(t) {
     if (t === stage) return; stage = t;
-    const a = Math.min(1, Math.max(0, t)), b = Math.min(1, Math.max(0, t - 1));
+    // 0 skeleton, 1 shrink-wrap, 2 curator's model, 3 alive
+    const k = (lo) => Math.min(1, Math.max(0, t - lo));
     parts.bone.mesh.visible = t < 1.0;
-    parts.wrap.mesh.visible = t > 0.001 && t <= 1.0;
-    parts.wrap.mat.userData.uMorph.value = a;
-    parts.alive.mesh.visible = t > 1.0;
-    parts.alive.mat.userData.uMorph.value = b;
-    const sS = smooth(0.45, 0.9, t) * (1 - smooth(1.05, 1.35, t)), sL = smooth(1.3, 1.75, t);
-    for (const e of eyes) {
-      e.S.visible = sS > 0.01; e.S.scale.setScalar(Math.max(0.001, sS));
-      e.L.visible = sL > 0.01; e.L.scale.setScalar(Math.max(0.001, sL));
+    parts.wrap.mesh.visible = t > 0.001 && t <= 1.0; parts.wrap.mat.userData.uMorph.value = k(0);
+    parts.curator.mesh.visible = t > 1.0 && t <= 2.0; parts.curator.mat.userData.uMorph.value = k(1);
+    parts.alive.mesh.visible = t > 2.0; parts.alive.mat.userData.uMorph.value = k(2);
+    const sc = { S: smooth(0.45, 0.9, t) * (1 - smooth(1.05, 1.35, t)), C: smooth(1.3, 1.75, t) * (1 - smooth(2.05, 2.35, t)), L: smooth(2.3, 2.75, t) };
+    for (const e of eyes) for (const key of ['S', 'C', 'L']) {
+      if (!e[key]) continue;
+      e[key].visible = sc[key] > 0.01; e[key].scale.setScalar(Math.max(0.001, sc[key]));
     }
   }
-  setStage(1);
+  setStage(2);
   // bounds in metres (for placement and picking)
   const box = new THREE.Box3();
-  parts.alive.mat.userData.uMorph.value = 1; box.setFromObject(parts.alive.mesh); box.union(new THREE.Box3().setFromObject(parts.bone.mesh));
+  parts.alive.mat.userData.uMorph.value = 1; box.setFromObject(parts.alive.mesh); box.union(new THREE.Box3().setFromObject(parts.bone.mesh)); box.union(new THREE.Box3().setFromObject(parts.curator.mesh));
   return { A, root, setStage, box, man, get stage() { return stage; } };
 }

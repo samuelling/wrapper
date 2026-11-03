@@ -26,7 +26,7 @@
 html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); overflow: hidden; font-family: var(--body); font-stretch: 92%; -webkit-font-smoothing: antialiased; }
 #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #scene:active { cursor: grabbing; }
-.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top) + 12px) 16px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; }
+.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top) + 12px) 16px 18px; background: linear-gradient(rgba(10,12,11,.62), rgba(10,12,11,0)); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; }
 .title { font-family: var(--display); font-size: clamp(22px, 4vw, 32px); line-height: 1; text-shadow: 0 2px 12px rgba(0,0,0,.7); }
 .title em { color: var(--brass); }
 .hint { pointer-events: auto; font-size: 12px; color: var(--muted); background: var(--glass); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 9px; max-width: 260px; line-height: 1.4; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
@@ -43,9 +43,13 @@ input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2
 input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #e9e2cf 0%, #c49e92 50%, var(--brass) 100%); }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -10px; border-radius: 50%; background: var(--bone); border: 3px solid var(--ink); box-shadow: 0 0 0 1px var(--bone); }
 input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--bone); border: 3px solid var(--ink); box-shadow: 0 0 0 1px var(--bone); }
-.stops { display: grid; grid-template-columns: 1fr 1fr 1fr; margin-top: -4px; }
+.stops { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: -4px; }
 .stops button { background: none; border: 0; color: var(--muted); font: 400 16px/1.1 var(--display); padding: 2px 0; cursor: pointer; }
-.stops button:nth-child(1) { text-align: left; } .stops button:nth-child(2) { text-align: center; } .stops button:nth-child(3) { text-align: right; }
+.stops button:nth-child(1) { text-align: left; } .stops button:nth-child(4) { text-align: right; }
+.cap { margin: 4px 0 0; font-family: var(--display); font-size: 16px; line-height: 1.38; min-height: 2.76em; text-wrap: pretty; }
+.cap.curator { font-style: italic; }
+.cap.reveal b { font-family: var(--display-sc); font-weight: 400; color: var(--brass); }
+.tag { display: block; margin-top: 4px; font-family: var(--display); font-style: italic; font-size: 14px; color: var(--muted); text-shadow: 0 2px 10px rgba(0,0,0,.8); }
 .stops button.on { color: var(--bone); }
 .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .btn { font: 600 12.5px/1 var(--body); letter-spacing: .03em; color: var(--bone); background: transparent; border: 1px solid var(--rule); border-radius: 4px; padding: 9px 11px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
@@ -71,6 +75,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
 @media (max-width: 560px) {
   .hint { display: none; }
   .id .nm { font-size: 18px; } .id .lt { font-size: 13.5px; }
+  .cap { font-size: 14.5px; }
+  .tag { font-size: 12.5px; }
+  .stops button { font-size: 14px; }
   .panel { padding: 10px 12px; gap: 6px; }
   .btn { padding: 8px 9px; font-size: 12px; }
   .id .sz { display: none; }
@@ -83,9 +90,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
 <div class="top">
   <div>
     <div class="title">Shrink-wrap <em>gallery</em></div>
-    <span class="stagetag" id="stagetag">Shrink-wrapped</span>
+    <span class="tag">Restored by a curator who has only ever seen the bones</span>
+    <span class="stagetag" id="stagetag">Curator’s model</span>
   </div>
-  <div class="hint" id="hint">Drag to look around. Walk with W A S D or the arrow keys. Click any animal to choose it, or use the arrows below to visit each in turn.</div>
+  <div class="hint" id="hint">Drag to look around. Walk with W A S D or the arrow keys. Click an animal to choose it. Slide to Alive to see what it really was.</div>
 </div>
 
 <div id="joy" hidden aria-label="Walk"><div id="knob"></div></div>
@@ -98,8 +106,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
   </div>
   <div>
     <label for="stage" style="position:absolute;left:-9999px">Reconstruction stage</label>
-    <input type="range" id="stage" min="0" max="200" step="1" value="100">
-    <div class="stops" id="stops"><button data-t="0">Skeleton</button><button data-t="1" class="on">Shrink-wrapped</button><button data-t="2">Alive</button></div>
+    <input type="range" id="stage" min="0" max="300" step="1" value="200">
+    <div class="stops" id="stops"><button data-t="0">Skeleton</button><button data-t="1">Shrink-wrap</button><button data-t="2" class="on">Curator</button><button data-t="3">Alive</button></div>
+    <p class="cap" id="cap"></p>
   </div>
   <div class="row">
     <button class="btn" id="play" aria-pressed="false"><span aria-hidden="true">▶</span><span id="playlbl">Play</span></button>
@@ -112,11 +121,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
     <ol id="hides"></ol>
     <h2>The palaeo parallel</h2>
     <p id="parallel"></p>
-    <p class="credit">After <i>All Yesterdays</i> (2012) by John Conway, C. M. Kosemen and Darren Naish, which drew living animals as if reconstructed from bones alone. The skeletons are simplified models built for this gallery. The shrink-wrap is computed: skin is pulled tight over the bones, spans small gaps and sinks into every hollow. Animals are shown at real scale. You can also see them as <a href="plates/index.html">flat side-view plates</a>.</p>
+    <p class="credit">After <i>All Yesterdays</i> (2012) by John Conway, C. M. Kosemen and Darren Naish, which drew living animals as if reconstructed from bones alone. The skeletons are simplified models built for this gallery. The shrink-wrap is computed: skin is pulled tight over the bones, spans small gaps and sinks into every hollow. The curator’s models are invented misreadings, in the spirit of the book’s closing section, where living animals are restored by people who know only their bones. Animals are shown at real scale. You can also see them as <a href="plates/index.html">flat side-view plates</a>.</p>
   </div>
 </section>
 
-<div id="loading"><div><div class="big">Shrink-wrap <em>gallery</em></div><div class="msg" id="loadmsg">Opening the doors…</div></div></div>
+<div id="loading"><div><div class="big">Shrink-wrap <em>gallery</em></div><div class="msg" id="loadmsg">Opening the doors…</div><div class="msg" style="font-size:15px">Six skeletons, fleshed out by a curator who has never seen these animals alive</div></div></div>
 
 <script src="js/noise.js"></script>
 <script src="js/anatomy.js"></script>

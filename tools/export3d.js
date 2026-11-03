@@ -126,7 +126,7 @@ class Builder3D {
     }
   }
   ring(x, y, r, w, n, o) { for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; this.ellipse('bone', x + Math.cos(a) * r, y + Math.sin(a) * r, w, w * 0.7, a + Math.PI / 2, Object.assign({ rz: w * 0.5 }, o)); } }
-  eye(x, y, r, o) { const p = this.tp(x, y); this.eyes.push({ x: p[0], y: p[1], r: r * this.sc, rS: (o.rS || r * 1.2) * this.sc, z: o.z !== undefined ? o.z * this.sc : null, iris: o.iris, irisHi: o.irisHi, pupil: o.pupil || 'round', pupilR: o.pupilR || 0.45 }); }
+  eye(x, y, r, o) { const p = this.tp(x, y); this.eyes.push({ stage: o.stage || 'L', x: p[0], y: p[1], r: r * this.sc, rS: (o.rS || r * 1.2) * this.sc, z: o.z !== undefined ? o.z * this.sc : null, iris: o.iris, irisHi: o.irisHi, pupil: o.pupil || 'round', pupilR: o.pupilR || 0.45 }); }
   line() { } dot() { }
 }
 
@@ -135,8 +135,10 @@ require(path.join(__dirname, '../js/anatomy.js'));
 const out = path.join(__dirname, '../build/prims'); fs.mkdirSync(out, { recursive: true });
 for (const A of globalThis.ANIMALS3D) {
   const b = new Builder3D(); A.build(b);
+  if (A.curator) { b.Z(); b.far = false; A.curator.build(b); }
   const keep = ['id', 'unitsPerM', 'vox', 'wrap', 'skinT', 'blend', 'furAmp', 'fur', 'skinCol', 'boneCol', 'toothCol', 'groundY'];
   const meta = {}; keep.forEach(k => meta[k] = A[k]);
+  if (A.curator) meta.curator = { fur: !!A.curator.fur, furAmp: A.curator.furAmp || 0, exposeTeeth: !!A.curator.exposeTeeth };
   fs.writeFileSync(path.join(out, A.id + '.json'), JSON.stringify({ meta, prims: b.prims, eyes: b.eyes }));
   console.log(A.id, b.prims.length, 'prims', b.eyes.length, 'eyes');
 }

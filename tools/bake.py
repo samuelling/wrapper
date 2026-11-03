@@ -17,7 +17,7 @@ import fast_simplification as fsimp
 
 import os
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
-TARGET = {'bone': 38000, 'wrap': 26000, 'alive': 32000}
+TARGET = {'bone': 34000, 'wrap': 22000, 'curator': 26000, 'alive': 28000}
 
 
 def pw(pairs, x):
@@ -268,7 +268,7 @@ def bake(aid):
     meta, prims, eyes = data['meta'], data['prims'], data['eyes']
     v = meta['vox']
     pad = meta['wrap'] + meta['skinT'] + 2 * meta['blend'] + meta['furAmp'] + 6 * v
-    ex = [prim_extent(p) for p in prims if p['layer'] in ('bone', 'teeth', 'teethX', 'tissue')]
+    ex = [prim_extent(p) for p in prims if p['layer'] in ('bone', 'teeth', 'teethX', 'tissue', 'ctissue')]
     lo = [min(e[0] for e in ex) - pad, min(e[2] for e in ex) - pad, -max(e[4] for e in ex) - pad]
     hi = [max(e[1] for e in ex) + pad, max(e[3] for e in ex) + pad, max(e[4] for e in ex) + pad]
     g = Grid(lo, hi, v)
@@ -276,6 +276,8 @@ def bake(aid):
     B = np.zeros(g.shape, bool); TN = np.zeros(g.shape, bool); TX = np.zeros(g.shape, bool); TS = np.zeros(g.shape, bool)
     CID = np.zeros(g.shape, np.int16); BARE = np.zeros(g.shape, bool); SPEC = np.zeros(g.shape, np.uint8)
     palette = [[0, 0, 0]]
+    CT = np.zeros(g.shape, bool); CCID = np.zeros(g.shape, np.int16); CBARE = np.zeros(g.shape, bool); CSPEC = np.zeros(g.shape, np.uint8)
+    cpal = [[0, 0, 0]]
     for p in prims:
         L = p['layer']
         if L == 'recess':
@@ -298,16 +300,18 @@ def bake(aid):
             apply_mask(B, parts)
         elif L in ('teeth', 'teethX'):
             apply_mask(B, parts); apply_mask(TX if L == 'teethX' else TN, parts)
-        elif L == 'tissue':
-            apply_mask(TS, parts)
+        elif L in ('tissue', 'ctissue'):
+            cur = L == 'ctissue'
+            vol, cidv, barev, specv, pal = (CT, CCID, CBARE, CSPEC, cpal) if cur else (TS, CID, BARE, SPEC, palette)
+            apply_mask(vol, parts)
             cid = 0
             if p.get('color'):
-                palette.append(hexcol(p['color'])); cid = len(palette) - 1
+                pal.append(hexcol(p['color'])); cid = len(pal) - 1
             bare = p.get('fur') is False
             for (sx, sy, sz), m in parts:
-                CID[sx, sy, sz][m] = cid
-                BARE[sx, sy, sz][m] = bare
-                SPEC[sx, sy, sz][m] = int((p.get('spec') if p.get('spec') is not None else 0.25) * 255) if bare else 10
+                cidv[sx, sy, sz][m] = cid
+                barev[sx, sy, sz][m] = bare
+                specv[sx, sy, sz][m] = int((p.get('spec') if p.get('spec') is not None else 0.25) * 255) if bare else 10
     print(' rasterised', round(time.time() - t0, 1), 's')
 
     T = TN | TX
@@ -326,11 +330,21 @@ def bake(aid):
     fL = sdf(Lc, v)
     if TX.any(): fL = np.minimum(fL, sdf(TX, v) - 0.4 * v)
     fL = ndi.gaussian_filter(fL, 1.2)
+    # ---- the curator's reconstruction
+    cm = meta.get('curator') or {}
+    Cc = close_mask((fS0 < 0) | CT, meta['blend'], v)
+    fC = sdf(Cc, v)
+    # teeth the bones show outside the mouth (tusks, crocodile teeth) stay; the rest only if the curator bares them
+    TC = T if cm.get('exposeTeeth') else TX
+    if TC.any(): fC = np.minimum(fC, sdf(TC, v) - 0.4 * v)
+    TCsoft = ndi.gaussian_filter(TC.astype(np.float32), 0.8)
+    fC = ndi.gaussian_filter(fC, 1.2)
     print(' fields', round(time.time() - t0, 1), 's')
 
     solidB = ndi.gaussian_filter((fB < 0).astype(np.float32), 3)
     solidS = ndi.gaussian_filter((fS < 0).astype(np.float32), 3)
     solidL = ndi.gaussian_filter((fL < 0).astype(np.float32), 4)
+    solidC = ndi.gaussian_filter((fC < 0).astype(np.float32), 4)
     Tsoft = ndi.gaussian_filter(T.astype(np.float32), 0.8)
     TXsoft = ndi.gaussian_filter(TX.astype(np.float32), 0.8)
 
@@ -353,12 +367,34 @@ def bake(aid):
     colS = np.where(toothS[:, None], meta['toothCol'], meta['skinCol']) * aoS[:, None]
     colS0 = np.where(toothS[:, None], meta['toothCol'], meta['boneCol']) * aoS[:, None]
     out['wrap'] = dict(V=VS, V0=VS0, F=FS, col=colS, col0=colS0)
-    # living mesh, morph start on the wrap
+    # curator's mesh, morph start on the wrap
+    gS = np.gradient(fS)
+    VC, FC = mesh(fC, g, TARGET['curator'])
+    nC = vnormals(VC, FC)
+    VC0 = project(VC, fS, gS, g)
+    del gS
+    def look(V, n, cidv, barev, specv):
+        q = V - n * 1.6 * v
+        ci = np.rint((q - g.lo) / v).astype(int)
+        for k in range(3): ci[:, k] = np.clip(ci[:, k], 0, g.shape[k] - 1)
+        return cidv[ci[:, 0], ci[:, 1], ci[:, 2]], barev[ci[:, 0], ci[:, 1], ci[:, 2]], specv[ci[:, 0], ci[:, 1], ci[:, 2]]
+    ccid, cbare, cspec = look(VC, nC, CCID, CBARE, CSPEC)
+    ctooth = sample(TCsoft, g, VC - nC * 0.8 * v) > 0.25
+    if cm.get('fur') and cm.get('furAmp', 0) > 0:
+        nn = noise3(VC, 1 / 5.0) * 0.6 + noise3(VC + 17.3, 1 / 2.2) * 0.4
+        VC = VC + nC * (cm['furAmp'] * (0.15 + 0.85 * nn) * (~cbare) * (~ctooth))[:, None]
+    aoC = np.clip(1.12 - 1.2 * sample(solidC, g, VC + nC * 3 * v), 0.4, 1)
+    cpalA = np.array(cpal, np.float64)
+    colC = cpalA[ccid]; colC[ctooth] = meta['toothCol']
+    colC0 = np.where(ctooth[:, None], meta['toothCol'], meta['skinCol'])
+    out['curator'] = dict(V=VC, V0=VC0, F=FC, col=colC, col0=colC0, coat=((ccid == 0) & ~ctooth).astype(np.uint8), ao=(aoC * 255).astype(np.uint8),
+                          gloss=np.where(ctooth, 140, np.where(cbare, cspec, 10)).astype(np.uint8))
+    # living mesh, morph start on the curator's model
     VL, FL = mesh(fL, g, TARGET['alive'])
     nL = vnormals(VL, FL)
-    gS = np.gradient(fS)
-    VL0 = project(VL, fS, gS, g)
-    del gS
+    gC = np.gradient(fC)
+    VL0 = project(VL, fC, gC, g)
+    del gC
     inner = VL - nL * 1.6 * v
     ci = np.rint((inner - g.lo) / v).astype(int)
     for k in range(3): ci[:, k] = np.clip(ci[:, k], 0, g.shape[k] - 1)
@@ -375,21 +411,25 @@ def bake(aid):
     colL = pal[cid]
     coat = (cid == 0) & ~tx
     colL[tx] = meta['toothCol']
-    colL0 = np.where(tx[:, None], meta['toothCol'], meta['skinCol'])
+    # starting colour = the curator's colour where the living vertex begins
+    c0cid, _, _ = look(VL0, nL, CCID, CBARE, CSPEC)
+    tm0 = sample(TCsoft, g, VL0 - nL * 0.8 * v) > 0.25
+    colL0 = cpalA[c0cid].copy(); colL0[tm0] = meta['toothCol']
+    coat0 = (c0cid == 0) & ~tm0
     gloss = np.where(tx, 140, np.where(bare, spec, 10)).astype(np.uint8)
-    out['alive'] = dict(V=VL, V0=VL0, F=FL, col=colL, col0=colL0, coat=coat.astype(np.uint8), ao=(aoL * 255).astype(np.uint8), gloss=gloss)
+    out['alive'] = dict(V=VL, V0=VL0, F=FL, col=colL, col0=colL0, coat=coat.astype(np.uint8), coat0=coat0.astype(np.uint8), ao=(aoL * 255).astype(np.uint8), gloss=gloss)
 
     # eyes, both sides
     ex = []
     for e in eyes:
         i = int(np.clip(round((e['x'] - g.lo[0]) / v), 0, g.shape[0] - 1)); j = int(np.clip(round((e['y'] - g.lo[1]) / v), 0, g.shape[1] - 1))
         for s in (1, -1):
-            colS_ = fS[i, j, :] < 0; colL_ = fL[i, j, :] < 0
+            colS_ = fS[i, j, :] < 0; colL_ = (fC if e.get('stage') == 'C' else fL)[i, j, :] < 0
             zz = g.Z * s
             zsS = zz[colS_].max() if colS_.any() else 0.0
             zsL = zz[colL_].max() if colL_.any() else zsS
             if e.get('z') is not None: zsS = max(zsS, abs(e['z'])); zsL = max(zsL, abs(e['z']))
-            ex.append(dict(x=e['x'], y=e['y'], zS=s * (zsS - 0.3 * e['rS']), zL=s * (zsL - 0.5 * e['r']), r=e['r'], rS=e['rS'], side=s,
+            ex.append(dict(stage=e.get('stage', 'L'), x=e['x'], y=e['y'], zS=s * (zsS - 0.3 * e['rS']), zL=s * (zsL - 0.5 * e['r']), r=e['r'], rS=e['rS'], side=s,
                            iris=e['iris'], irisHi=e['irisHi'], pupil=e['pupil'], pupilR=e['pupilR']))
     print(' meshes', {k: len(m['F']) for k, m in out.items()}, round(time.time() - t0, 1), 's')
     write(aid, meta, out, ex)
@@ -424,7 +464,7 @@ def write(aid, meta, out, eyes):
         ent['idx'] = add('idx', F.astype(np.uint16 if len(V) < 65536 else np.uint32).ravel())
         ent['col'] = add('col', np.clip(m['col'], 0, 255).astype(np.uint8).ravel())
         if 'col0' in m: ent['col0'] = add('col0', np.clip(m['col0'], 0, 255).astype(np.uint8).ravel())
-        for k in ('coat', 'ao', 'gloss'):
+        for k in ('coat', 'coat0', 'ao', 'gloss'):
             if k in m: ent[k] = add(k, m[k].astype(np.uint8))
         man['meshes'][name] = ent
     for e in eyes:

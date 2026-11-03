@@ -48,7 +48,7 @@ function addPlinth(L, sp) {
   }
 }
 function addPlaque(L, A) {
-  const tex = plaqueTexture(A.name, A.latin);
+  const tex = plaqueTexture(A.curator.common, A.curator.name);
   for (const s of [1, -1]) {
     const p = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.18), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.35, metalness: 0.6 }));
     p.position.set(L.x, HALL.platform.h + 0.1, s * (HALL.platform.z + 0.02));
@@ -67,12 +67,26 @@ function look(target) {
 
 // ---------- UI ----------
 const slider = $('stage'), stopsEl = $('stops');
-function stageLabel(t) { return t < 0.5 ? 'Skeleton' : t < 1.5 ? 'Shrink-wrapped' : 'Alive'; }
+function stageLabel(t) { return t < 0.5 ? 'Skeleton' : t < 1.5 ? 'Shrink-wrapped' : t < 2.5 ? 'Curator’s model' : 'Alive'; }
+// the panel speaks as the museum until the reveal
+function updateText() {
+  const sp = specimens[state.sel]; if (!sp) return;
+  const A = sp.A, C = A.curator, t = sp.stage, real = t >= 2.5;
+  $('nm').textContent = real ? A.name : C.common;
+  $('lt').textContent = real ? A.latin : C.name;
+  $('sz').textContent = real ? A.size : 'Restored by the curator';
+  const cap = $('cap');
+  cap.className = 'cap' + (t >= 1.5 && t < 2.5 ? ' curator' : real ? ' reveal' : '');
+  if (t < 0.5) cap.textContent = 'The bones as mounted. This is all the curator had to work from.';
+  else if (t < 1.5) cap.textContent = 'Shrink-wrapped: skin pulled tight over the bones, and nothing more.';
+  else if (t < 2.5) cap.textContent = '“' + C.label + '”';
+  else { const i = A.curator.reveal.indexOf('.'); cap.innerHTML = ''; const b = document.createElement('b'); b.textContent = A.curator.reveal.slice(0, i + 1); cap.append(b, A.curator.reveal.slice(i + 1)); }
+}
 function showSelected() {
   const sp = specimens[state.sel]; if (!sp) return;
   const A = sp.A;
-  $('nm').textContent = A.name; $('lt').textContent = A.latin; $('sz').textContent = A.size;
   slider.value = Math.round(sp.stage * 100);
+  updateText(); $('stagetag').textContent = stageLabel(sp.stage);
   [...stopsEl.children].forEach((b, i) => b.classList.toggle('on', Math.abs(sp.stage - i) < 0.5));
   $('hides').innerHTML = ''; A.hides.forEach(h => { const li = document.createElement('li'); li.textContent = h; $('hides').appendChild(li); });
   $('parallel').textContent = A.parallel;
@@ -92,6 +106,7 @@ function setStage(t, which) {
   if (Math.abs(slider.value / 100 - t) > 0.004) slider.value = Math.round(t * 100);
   [...stopsEl.children].forEach((b, i) => b.classList.toggle('on', Math.abs(t - i) < 0.5));
   $('stagetag').textContent = stageLabel(t);
+  updateText();
   dirty = true;
 }
 slider.addEventListener('input', () => { stopPlay(); state.lockUntil = performance.now() + 6000; setStage(slider.value / 100); });
@@ -117,7 +132,7 @@ function tweenStage(t1) {
 }
 let playing = false, playDir = 1, hold = 0;
 $('play').addEventListener('click', () => playing ? stopPlay() : startPlay());
-function startPlay() { playing = true; $('play').setAttribute('aria-pressed', 'true'); $('playlbl').textContent = 'Pause'; const s = specimens[state.sel].stage; playDir = s >= 2 ? -1 : 1; }
+function startPlay() { playing = true; $('play').setAttribute('aria-pressed', 'true'); $('playlbl').textContent = 'Pause'; const s = specimens[state.sel].stage; playDir = s >= 3 ? -1 : 1; }
 function stopPlay() { playing = false; $('play').setAttribute('aria-pressed', 'false'); $('playlbl').textContent = 'Play'; }
 
 // ---------- camera glide ----------
@@ -262,8 +277,8 @@ function frame(now) {
     if (hold > 0) hold -= dt;
     else {
       const sp = specimens[state.sel]; const prev = sp.stage; let t = prev + playDir * dt * 0.5;
-      for (const k of [0, 1, 2]) if ((prev - k) * (t - k) < 0) { t = k; hold = 1.0; }
-      if (t >= 2) { t = 2; playDir = -1; hold = 1.0; } if (t <= 0) { t = 0; playDir = 1; hold = 1.0; }
+      for (const k of [0, 1, 2, 3]) if ((prev - k) * (t - k) < 0) { t = k; hold = 1.4; }
+      if (t >= 3) { t = 3; playDir = -1; hold = 1.6; } if (t <= 0) { t = 0; playDir = 1; hold = 1.4; }
       setStage(t); slider.value = t * 100;
     }
   }
@@ -306,13 +321,13 @@ async function boot() {
   });
   const list = await Promise.all(loads);
   specimens.push(...list);
-  specimens.forEach(s => s.setStage(1));
+  specimens.forEach(s => s.setStage(2));
   const h = location.hash.slice(1), hi = specimens.findIndex(s => s.A.id === h);
   state.sel = hi >= 0 ? hi : 0;
   if (hi >= 0) { const v = viewpoint(hi); pos.copy(v.p); look(v.t); }
   else look(new THREE.Vector3(4, 1.6, 0));
   state.lockUntil = performance.now() + 2500;
-  showSelected(); setStage(1);
+  showSelected(); setStage(2);
   $('loading').hidden = true;
   dirty = true;
 }

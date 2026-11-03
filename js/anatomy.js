@@ -647,5 +647,255 @@
     }
   });
 
+  // =====================================================================
+  // THE CURATOR'S RECONSTRUCTIONS
+  // A curator who has only ever seen these skeletons fleshes them out. Muscles are mostly right;
+  // anything that leaves no trace in bone is missing or guessed from the wrong relatives.
+  // Layer 'ctissue' is the curator's soft tissue; eyes with stage 'C' are the curator's eyes.
+  // =====================================================================
+  const byId = (id) => A.find(a => a.id === id);
+
+  byId('elephant').curator = {
+    name: 'Nasocrista ingens', common: 'Great crest-nose', fur: false, furAmp: 0,
+    label: 'The vast opening high on the brow fed an inflatable nasal hood, swollen for display. It walked on its toes, exactly as the foot bones show.',
+    reveal: 'In life: an African elephant. That opening anchors a boneless trunk, a fat pad cushions the toes, and the ears are huge flaps of skin.',
+    coat(x, y) {
+      const n = fbm(x * 0.025, y * 0.025);
+      let c = mix([128, 112, 96], [92, 80, 70], n);
+      return mix(c, [70, 60, 52], sstep(260, 200, y) * 0.5);
+    },
+    build(b) {
+      b.Z({ z: 64 });
+      b.far = true;
+      b.tube('ctissue', [[630, 345], [602, 440], [594, 525], [604, 552]], [36, 26, 18, 14]);
+      b.tube('ctissue', [[316, 330], [302, 440], [306, 526], [318, 552]], [38, 26, 18, 14]);
+      b.far = false;
+      b.Z({ th: 84 });
+      b.shape('ctissue', [[660, 250], [625, 185], [560, 180], [500, 194], [440, 204], [380, 208], [330, 200], [285, 214], [262, 250], [258, 300], [270, 350], [300, 384], [360, 396], [440, 398], [520, 402], [600, 408], [650, 404], [685, 380], [700, 330], [698, 280]]);
+      b.Z({ z: 66 });
+      b.tube('ctissue', [[640, 330], [628, 440], [630, 525], [646, 553]], [40, 28, 20, 14]);
+      b.shape('ctissue', [[350, 250], [370, 330], [360, 420], [340, 440], [310, 432], [298, 370], [302, 290]], { z: 58, th: 36 });
+      b.tube('ctissue', [[338, 440], [326, 526], [342, 553]], [28, 20, 14]);
+      b.Z();
+      b.tube('ctissue', [[294, 288], [272, 300], [256, 330], [248, 370], [244, 410], [242, 445]], [8, 3]);
+      b.local(700, 268, 1.35, 0.05, 'head', () => {
+        b.Z({ thx: [[-10, 36], [30, 42], [60, 36], [80, 26]] });
+        b.shape('ctissue', [[-10, -10], [-6, -50], [6, -72], [26, -80], [46, -76], [60, -64], [70, -46], [74, -20], [78, 10], [80, 36], [72, 54], [56, 58], [40, 54], [20, 50], [0, 40], [-10, 20]]);
+        b.Z();
+        b.ellipse('ctissue', 78, 30, 12, 18, 0, { rz: 22 });
+        b.ellipse('ctissue', 54, -60, 33, 26, -0.45, { rz: 33, color: '#a3473a', fur: false, spec: 0.35 });
+        b.ellipse('ctissue', 62, -66, 15, 11, -0.45, { rz: 31, color: '#d9a07c', fur: false, spec: 0.4 });
+        b.eye(42, -18, 4.2, { stage: 'C', iris: '#c48a2a', irisHi: '#f0c060', pupil: 'round' });
+      });
+    }
+  };
+
+  byId('bison').curator = {
+    name: 'Velifer pratensis', common: 'Sail-backed grazer', fur: false, furAmp: 0,
+    label: 'Towering spines over the shoulders carried a skin sail, flushed with colour for display, like the sail of Dimetrodon.',
+    reveal: 'In life: an American bison. The spines anchor the ligament that holds up its head, under a hump of muscle and wool.',
+    coat(x, y) {
+      const top = 236 + Math.max(0, (x - 600) * 0.15) + Math.max(0, (470 - x) * 0.35);
+      if (y < top && x > 410 && x < 700) {
+        const band = sstep(-0.3, 0.3, Math.sin(x * 0.2 + y * 0.03));
+        return mix(mix([232, 204, 156], [172, 50, 34], band), [70, 44, 32], sstep(214, 160, y) * 0.3);
+      }
+      const n = fbm(x * 0.03, y * 0.03);
+      let c = mix([158, 122, 84], [96, 70, 46], sstep(340, 280, y));
+      return mix(c, [120, 90, 62], (n - 0.4) * 0.6);
+    },
+    build(b) {
+      b.Z({ z: 48 });
+      b.far = true;
+      b.tube('ctissue', [[650, 350], [640, 432], [630, 512], [640, 546]], [28, 16, 9, 8]);
+      b.shape('ctissue', [[628, 542], [650, 542], [660, 560], [624, 560]], { color: '#1b1917', fur: false, spec: 0.35, th: 11 });
+      b.tube('ctissue', [[340, 330], [350, 412], [326, 500], [322, 544]], [26, 12, 8, 7]);
+      b.shape('ctissue', [[310, 542], [332, 542], [340, 560], [306, 560]], { color: '#1b1917', fur: false, spec: 0.35, th: 11 });
+      b.far = false;
+      b.Z({ th: 76 });
+      b.shape('ctissue', [[690, 330], [680, 270], [660, 244], [600, 244], [540, 252], [490, 260], [440, 264], [390, 266], [340, 266], [300, 272], [284, 300], [286, 350], [300, 396], [330, 430], [380, 446], [440, 448], [520, 452], [600, 460], [660, 458], [700, 430], [712, 380]]);
+      b.ellipse('ctissue', 650, 282, 34, 72, 0.15, { z: 58, mirror: true, rz: 22 });
+      b.Z({ th: 3.5, prof: 'slab' });
+      b.shape('ctissue', [[690, 300], [662, 236], [632, 192], [602, 172], [572, 168], [540, 180], [506, 204], [470, 232], [440, 252], [418, 266], [440, 284], [600, 284], [690, 312]]);
+      b.Z();
+      b.tube('ctissue', [[738, 300], [704, 288], [672, 298]], [36, 44, 50]);
+      b.Z({ z: 48 });
+      b.tube('ctissue', [[655, 340], [668, 432], [664, 512], [668, 540]], [32, 18, 10, 8]);
+      b.shape('ctissue', [[656, 540], [680, 540], [692, 560], [652, 560]], { color: '#1b1917', fur: false, spec: 0.35, th: 11 });
+      b.shape('ctissue', [[396, 262], [404, 320], [392, 396], [370, 424], [342, 420], [314, 378], [304, 304], [330, 270]], { z: 40, th: 36 });
+      b.tube('ctissue', [[378, 410], [352, 498], [370, 544]], [13, 8, 7]);
+      b.tube('ctissue', [[356, 498], [334, 490]], 7);
+      b.shape('ctissue', [[360, 542], [384, 542], [394, 560], [356, 560]], { color: '#1b1917', fur: false, spec: 0.35, th: 11 });
+      b.Z();
+      b.tube('ctissue', [[294, 302], [278, 318], [268, 350], [262, 390], [260, 425]], [6, 2.5]);
+      b.local(742, 300, 1.13, 0.62, 'head', () => {
+        b.Z({ thx: [[-12, 34], [20, 38], [50, 30], [80, 20], [108, 16]] });
+        b.shape('ctissue', [[-12, 0], [-10, -26], [2, -34], [20, -34], [40, -26], [60, -20], [80, -14], [96, -8], [106, -2], [108, 8], [100, 14], [86, 20], [66, 26], [44, 32], [24, 34], [6, 32], [-8, 20]]);
+        b.shape('ctissue', [[92, -6], [106, -2], [109, 8], [101, 12], [92, 5]], { color: '#2a2220', fur: false, spec: 0.4, th: 18 });
+        b.Z();
+        b.tube('ctissue', [[14, -24], [11, -40], [17, -54], [28, -62]], [10.5, 8.2, 6, 3.2], { zs: [26, 40, 48, 48], mirror: true, color: '#bcae92', fur: false, spec: 0.4 });
+        b.eye(36, -14, 4.6, { stage: 'C', iris: '#8a6a1c', irisHi: '#d0a640', pupil: 'round' });
+      });
+    }
+  };
+
+  byId('cat').curator = {
+    name: 'Nudodon parvus', common: 'Little bare-tooth', fur: false, furAmp: 0, exposeTeeth: true,
+    label: 'A small ambush hunter. Its long canines could not fit under lips, so they are shown bare, and the hide is hairless, as nothing suggests otherwise.',
+    reveal: 'In life: a house cat. Lips cover the fangs, and fur, ears and whiskers leave no trace in bone.',
+    coat(x, y) {
+      const n = fbm(x * 0.04, y * 0.04);
+      let c = mix([184, 156, 146], [128, 104, 98], sstep(0.45, 0.75, n));
+      return mix(c, [210, 186, 172], sstep(360, 392, y) * 0.6);
+    },
+    build(b) {
+      b.Z({ z: 26 });
+      b.far = true;
+      b.tube('ctissue', [[690, 340], [692, 430], [704, 510], [726, 548]], [18, 10, 7, 6]);
+      b.tube('ctissue', [[392, 330], [420, 410], [394, 492], [424, 548]], [19, 10, 6, 6]);
+      b.far = false;
+      b.Z({ th: 38 });
+      b.shape('ctissue', [[700, 286], [650, 276], [590, 274], [530, 278], [475, 278], [425, 274], [388, 280], [358, 294], [346, 316], [352, 342], [372, 362], [400, 372], [440, 370], [480, 376], [540, 392], [600, 404], [650, 410], [690, 398], [712, 370], [720, 330], [714, 300]]);
+      b.Z();
+      b.tube('ctissue', [[748, 262], [724, 284], [704, 312]], [26, 34]);
+      b.Z({ z: 26 });
+      b.tube('ctissue', [[680, 330], [664, 430], [674, 512], [694, 548]], [22, 12, 8, 7]);
+      b.shape('ctissue', [[422, 300], [440, 340], [430, 398], [408, 424], [386, 428], [362, 398], [346, 352], [354, 310], [384, 294]], { z: 24, th: 17 });
+      b.tube('ctissue', [[404, 412], [364, 496], [388, 550]], [12, 7, 6]);
+      b.Z();
+      b.tube('ctissue', [[352, 302], [338, 306], [310, 318], [275, 330], [235, 332], [195, 320], [168, 295], [152, 262], [148, 228], [155, 200]], [7, 3]);
+      b.local(742, 252, 1.0, 0.06, 'head', () => {
+        b.Z({ thx: [[0, 30], [30, 36], [60, 32], [85, 20], [103, 12]] });
+        b.shape('ctissue', [[0, -6], [4, -26], [18, -38], [38, -42], [56, -39], [68, -31], [80, -23], [92, -16], [100, -9], [103, -2], [101, 3], [94, 4], [82, 5], [66, 6], [52, 6], [40, 10], [26, 16], [12, 18], [2, 12]]);
+        b.Z({ zx: [[20, 18], [60, 16], [96, 7]], mirror: true, th: 3.5, prof: 'slab' });
+        b.shape('ctissue', [[18, 12], [40, 14], [60, 14], [80, 13], [94, 13], [97, 16], [94, 21], [84, 24], [66, 26], [46, 27], [28, 26], [14, 22]]);
+        b.Z();
+        b.eye(61, -15, 9.2, { stage: 'C', iris: '#d49a24', irisHi: '#f4cc60', pupil: 'round' });
+      });
+    }
+  };
+
+  byId('swan').curator = {
+    name: 'Ophidornis squamatus', common: 'Scaly snake-bird', fur: false, furAmp: 0,
+    label: 'A long-necked wading reptile. The fused hand made a stiff paddle for swimming, and with no trace of a covering we restore scales.',
+    reveal: 'In life: a mute swan. Feathers triple the neck’s girth, the paddle is a folded wing, and webs join the toes.',
+    coat(x, y) {
+      let c = mix([118, 128, 98], [74, 84, 62], sstep(0.2, 0.8, Math.sin(y * 0.09 + x * 0.02)) * (x > 600 ? 0.7 : 0.25));
+      c = mix(c, [196, 190, 150], sstep(440, 470, y) * (x < 620 ? 1 : 0));
+      return mix(c, [60, 66, 50], (fbm(x * 0.06, y * 0.06) - 0.45) * 0.5);
+    },
+    build(b) {
+      b.Z({ z: 14 });
+      b.far = true;
+      b.tube('ctissue', [[496, 450], [500, 500], [500, 536]], [8, 4.5, 3.6]);
+      b.tube('ctissue', [[500, 538], [516, 548], [530, 553], [540, 555]], 2.4);
+      b.far = false;
+      b.Z();
+      b.tube('ctissue', [[716, 164], [700, 168], [684, 176], [670, 194], [664, 220], [668, 250], [678, 280], [684, 310], [680, 340], [664, 364], [640, 380], [612, 392]], [7, 7.5, 8, 8, 8.5, 9, 9.5, 10, 11, 13, 16, 20]);
+      b.Z({ th: 36 });
+      b.shape('ctissue', [[612, 372], [590, 358], [550, 352], [500, 352], [452, 356], [420, 366], [400, 380], [410, 396], [440, 420], [480, 452], [530, 474], [580, 480], [608, 466], [626, 436], [628, 400]]);
+      b.Z({ z: 40, mirror: true, th: 5, prof: 'slab' });
+      b.shape('ctissue', [[620, 390], [600, 380], [560, 394], [530, 404], [516, 416], [540, 422], [580, 414], [608, 406]]);
+      b.Z();
+      b.tube('ctissue', [[408, 390], [376, 384]], [10, 3]);
+      b.Z({ z: 14 });
+      b.tube('ctissue', [[492, 440], [478, 500], [486, 536]], [9, 5, 4]);
+      b.tube('ctissue', [[486, 536], [500, 544], [514, 550], [526, 554], [534, 556]], 2.6);
+      b.tube('ctissue', [[486, 537], [504, 550], [518, 557], [528, 559]], 2.4, { z: 24 });
+      b.tube('ctissue', [[486, 537], [504, 550], [518, 557], [528, 559]], 2.4, { z: 5 });
+      b.Z();
+      b.local(722, 162, 0.72, 0.12, 'head', () => {
+        b.Z({ thx: [[-6, 12], [20, 13], [34, 10]] });
+        b.shape('ctissue', [[-6, 2], [-5, -12], [3, -22], [16, -25], [28, -20], [34, -13], [36, -6], [34, 4], [22, 10], [8, 12]]);
+        b.Z({ thx: [[30, 9.5], [60, 9.5], [100, 7.5]] });
+        b.shape('ctissue', [[32, -14], [46, -10], [62, -8.5], [78, -7.5], [92, -6.5], [100, -3], [102, 1.5], [96, 4.5], [80, 4.5], [60, 4], [42, 5], [34, 4], [30, -4]], { color: '#3a3226', fur: false, spec: 0.45 });
+        b.Z();
+        b.eye(19, -9, 4.6, { stage: 'C', iris: '#c8b030', irisHi: '#f0e070', pupil: 'round' });
+      });
+    }
+  };
+
+  byId('owl').curator = {
+    name: 'Oculator gracilis', common: 'Slender eye-bearer', fur: false, furAmp: 0,
+    label: 'Eyes filled most of the skull, so it hunted by night. The long legs suggest a lean, stalking walker, bare-skinned like a vulture’s head.',
+    reveal: 'In life: a barn owl. Feathers hide the legs, round out the body and build the heart-shaped face that funnels sound to its ears.',
+    coat(x, y) {
+      const n = fbm(x * 0.09, y * 0.09);
+      return mix([204, 176, 164], [150, 112, 92], sstep(0.5, 0.8, n) * 0.8);
+    },
+    build(b) {
+      b.Z({ z: 18 });
+      b.far = true;
+      b.tube('ctissue', [[590, 396], [586, 464], [598, 512]], [7, 4, 3]);
+      b.tube('ctissue', [[598, 512], [612, 516], [622, 519]], 2.4, { color: '#5a5048', fur: false, spec: 0.2 });
+      b.claw(622, 519, 11, 0.7, 2, 'ctissue', { color: '#1b1714', fur: false, spec: 0.5 });
+      b.far = false;
+      b.Z();
+      b.tube('ctissue', [[608, 182], [596, 196], [588, 214], [592, 236], [602, 252], [604, 270]], [10, 11, 12, 13, 15, 18]);
+      b.shape('ctissue', [[620, 270], [634, 300], [640, 340], [632, 380], [614, 404], [590, 410], [566, 398], [552, 370], [550, 330], [560, 292], [584, 272], [604, 266]], { th: 36 });
+      b.shape('ctissue', [[600, 284], [580, 300], [566, 330], [560, 360], [550, 378], [556, 384], [574, 350], [598, 314], [606, 292]], { z: 36, mirror: true, th: 8, prof: 'slab' });
+      b.tube('ctissue', [[546, 404], [532, 428]], [8, 3]);
+      b.Z({ z: 18 });
+      b.tube('ctissue', [[596, 392], [574, 462], [584, 508]], [8, 4.5, 3.5]);
+      b.tube('ctissue', [[586, 512], [598, 515], [608, 518], [614, 520]], 2.6, { color: '#5a5048', fur: false, spec: 0.2 });
+      b.tube('ctissue', [[586, 513], [596, 519], [604, 523]], 2.4, { color: '#5a5048', fur: false, spec: 0.2, z: 26 });
+      b.tube('ctissue', [[585, 514], [574, 517], [566, 519]], 2.4, { color: '#5a5048', fur: false, spec: 0.2 });
+      b.claw(614, 520, 12, 0.6, 2.1, 'ctissue', { color: '#1b1714', fur: false, spec: 0.5 });
+      b.claw(604, 523, 11, 0.9, 2, 'ctissue', { color: '#1b1714', fur: false, spec: 0.5, z: 26 });
+      b.claw(566, 519, 11, 2.9, 2, 'ctissue', { color: '#1b1714', fur: false, spec: 0.5 });
+      b.Z();
+      b.local(612, 175, 1.0, 0.35, 'head', () => {
+        b.Z({ thx: [[-8, 28], [20, 36], [50, 34], [70, 18], [86, 8]] });
+        b.shape('ctissue', [[-8, 6], [-10, -22], [0, -40], [16, -52], [34, -54], [50, -48], [60, -36], [66, -22], [72, -12], [80, -2], [84, 8], [82, 14], [70, 16], [60, 16], [44, 16], [24, 18], [6, 16]]);
+        b.shape('ctissue', [[66, -4], [76, -2], [84, 10], [86, 22], [80, 32], [74, 24], [70, 10]], { color: '#2a2420', fur: false, spec: 0.45, th: 6 });
+        b.Z();
+        b.eye(38, -20, 13, { stage: 'C', iris: '#e2b41c', irisHi: '#fbe070', pupil: 'round', pupilR: 0.5 });
+      });
+    }
+  };
+
+  byId('crocodile').curator = {
+    name: 'Labiosuchus fluvialis', common: 'Lipped river-hunter', fur: false, furAmp: 0,
+    label: 'A great river hunter. Following its scaly, lizard-like kin, we seal the teeth behind lips and raise a crest along the bony back plates.',
+    reveal: 'In life: a Nile crocodile. It has no lips at all, so the teeth stay on show, and no crest; the plates lie flat in the skin.',
+    coat(x, y) {
+      const m = x > 430 ? 486 : 486 + (430 - x) * 0.07;
+      let c = mix([104, 132, 72], [62, 88, 46], sstep(m - 4, m - 30, y));
+      c = mix(c, [214, 200, 120], sstep(0.55, 0.9, Math.sin((y - m) * 0.32)) * (1 - sstep(m + 8, m + 18, y)) * 0.7);
+      if (y < m - 34 && x < 720) c = mix(c, [190, 120, 52], sstep(-0.2, 0.4, Math.sin(x * 0.09)) * 0.75);
+      return mix(c, [210, 196, 140], sstep(m + 10, m + 28, y));
+    },
+    build(b) {
+      b.Z({ z: 50 });
+      b.far = true;
+      b.tube('ctissue', [[652, 486], [668, 520], [676, 550]], [16, 11, 8], { zs: [40, 54, 60] });
+      b.ellipse('ctissue', 686, 556, 22, 4, 0, { rz: 16, z: 62 });
+      b.tube('ctissue', [[440, 486], [418, 520], [404, 550]], [18, 12, 9], { zs: [36, 50, 58] });
+      b.ellipse('ctissue', 418, 556, 26, 4, 0, { rz: 18, z: 60 });
+      b.far = false;
+      b.Z({ thx: [[40, 5], [150, 13], [300, 26], [420, 42], [500, 56], [650, 54], [740, 36]] });
+      b.shape('ctissue', [[690, 440], [640, 432], [580, 428], [520, 428], [460, 432], [420, 440], [380, 448], [330, 458], [270, 470], [210, 484], [150, 500], [100, 516], [60, 532], [50, 540], [70, 544], [120, 540], [180, 532], [240, 526], [300, 520], [360, 518], [410, 526], [460, 530], [520, 532], [580, 530], [640, 524], [690, 510], [720, 494], [740, 470]]);
+      b.Z({ th: 2.5, prof: 'slab' });
+      b.shape('ctissue', [[704, 446], [640, 432], [580, 424], [520, 422], [460, 426], [420, 434], [380, 442], [330, 452], [270, 464], [210, 478], [150, 494], [100, 510], [62, 528], [66, 520], [112, 494], [162, 474], [222, 456], [282, 440], [342, 426], [392, 416], [442, 404], [502, 400], [562, 398], [622, 404], [682, 418], [724, 440]]);
+      b.Z({ z: 50 });
+      b.tube('ctissue', [[636, 480], [612, 522], [626, 552]], [20, 13, 9], { zs: [40, 54, 60] });
+      b.ellipse('ctissue', 640, 556, 24, 4, 0, { rz: 16, z: 62 });
+      b.shape('ctissue', [[470, 450], [480, 500], [470, 524], [440, 520], [420, 490], [430, 456]], { z: 42, th: 20 });
+      b.tube('ctissue', [[470, 516], [452, 550]], [14, 11], { zs: [52, 58] });
+      b.ellipse('ctissue', 470, 556, 28, 4, 0, { rz: 18, z: 60 });
+      b.Z();
+      b.local(745, 465, 1.26, -0.02, 'head', () => {
+        b.Z({ thx: [[-10, 32], [10, 32], [30, 28], [45, 19], [62, 14], [110, 12]] });
+        b.shape('ctissue', [[-8, -6], [-4, -16], [14, -18], [30, -17], [42, -14], [60, -10], [80, -8], [98, -7], [106, -4], [110, 2], [106, 10], [96, 14], [70, 16], [40, 18], [20, 20], [0, 18], [-10, 8]]);
+        b.Z({ zx: [[0, 25], [20, 25], [40, 17.5], [60, 12.5], [100, 10.5]], mirror: true, th: 4.5, prof: 'slab' });
+        b.shape('ctissue', [[-4, 0], [20, 1], [40, 2], [60, 1], [80, 0], [100, 0], [108, 3], [100, 14], [80, 14], [60, 14], [40, 15], [20, 16], [0, 14]]);
+        b.Z();
+        b.ellipse('ctissue', 4, 8, 14, 10, 0, { rz: 34 });
+        b.ellipse('ctissue', 30, -15, 7, 4, 0, { z: 13, mirror: true, rz: 6 });
+        b.eye(30, -12.5, 3.6, { stage: 'C', iris: '#6a9a3a', irisHi: '#c8e070', pupil: 'round', z: 14 });
+      });
+    }
+  };
+
   root.ANIMALS3D = A;
 })(typeof window !== 'undefined' ? window : globalThis);
