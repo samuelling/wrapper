@@ -13,6 +13,8 @@ The curator's model follows the closing section of *All Yesterdays*, where livin
 | House cat | *Nudodon parvus*, the little bare-tooth | Hairless and lipless, with bare fangs and no ears or whiskers |
 | Barn owl | *Oculator gracilis*, the slender eye-bearer | A bald, gangly stalker with huge staring eyes and bare legs |
 
+**Specimen 7** leads the procession, and the gallery won't tell you what it is. Its Alive stage stays locked until you name the animal from the bones and the curator's model. Wrong guesses earn hints, and after two misses you can ask to be shown. (Spoiler: the answer is in `js/anatomy.js`.)
+
 ![The curator's models](docs/curators.png)
 
 In 3D the skin grows out of the bones, swells into the curator's guess, and then reshapes into the real animal.
@@ -26,7 +28,7 @@ Open `index.html` from a static server (for example `python3 -m http.server`) or
 - **Look:** drag. **Walk:** W A S D or the arrow keys (Shift to hurry); on a phone, use the joystick.
 - **Choose an animal:** look at it, tap it, or use ‹ › to glide to each one.
 - **Balcony:** go up to the first gallery and look down on the procession.
-- **All six:** move every animal through the stages together.
+- **All:** move every animal through the stages together.
 
 `plates/` holds the earlier flat side-view version.
 

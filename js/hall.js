@@ -2,7 +2,7 @@
 // a dark procession platform down the middle. Units are metres; the procession marches toward +x.
 import * as THREE from 'three';
 
-export const HALL = { L: 64, W: 26, H: 21, balconyY: [6.2, 11.6], colZ: 9.6, wallZ: 13, platform: { x0: -13, x1: 13, z: 3.8, h: 0.34 } };
+export const HALL = { L: 64, W: 26, H: 21, balconyY: [6.2, 11.6], colZ: 9.6, wallZ: 13, platform: { x0: -13, x1: 16.5, z: 3.8, h: 0.34 } };
 
 function canvasTex(w, h, draw, repeat) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;

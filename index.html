@@ -49,6 +49,15 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .cap { margin: 4px 0 0; font-family: var(--display); font-size: 16px; line-height: 1.38; min-height: 2.76em; text-wrap: pretty; }
 .cap.curator { font-style: italic; }
 .cap.reveal b { font-family: var(--display-sc); font-weight: 400; color: var(--brass); }
+#guess { display: grid; gap: 6px; border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 6px; }
+#guess label { font-size: 13px; color: var(--brass); letter-spacing: .02em; }
+#guess .grow { display: flex; gap: 6px; }
+#gin { flex: 1; min-width: 0; font: 15px var(--body); color: var(--bone); background: rgba(0,0,0,.35); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; }
+#gin::placeholder { color: var(--muted); }
+#gfb { margin: 0; font-family: var(--display); font-size: 15px; line-height: 1.35; color: var(--bone); min-height: 1.35em; }
+#gfb:empty { display: none; }
+.stops button.locked { color: var(--muted); opacity: .55; }
+.stops button.locked::after { content: ' ?'; }
 .tag { display: block; margin-top: 4px; font-family: var(--display); font-style: italic; font-size: 14px; color: var(--muted); text-shadow: 0 2px 10px rgba(0,0,0,.8); }
 .stops button.on { color: var(--bone); }
 .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
@@ -93,7 +102,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
     <span class="tag">Restored by a curator who has only ever seen the bones</span>
     <span class="stagetag" id="stagetag">Curator’s model</span>
   </div>
-  <div class="hint" id="hint">Drag to look around. Walk with W A S D or the arrow keys. Click an animal to choose it. Slide to Alive to see what it really was.</div>
+  <div class="hint" id="hint">Drag to look around. Walk with W A S D or the arrow keys. Click an animal to choose it. Slide to Alive to see what it really was, except for Specimen 7: name it first.</div>
 </div>
 
 <div id="joy" hidden aria-label="Walk"><div id="knob"></div></div>
@@ -109,10 +118,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); out
     <input type="range" id="stage" min="0" max="300" step="1" value="200">
     <div class="stops" id="stops"><button data-t="0">Skeleton</button><button data-t="1">Shrink-wrap</button><button data-t="2" class="on">Curator</button><button data-t="3">Alive</button></div>
     <p class="cap" id="cap"></p>
+    <form id="guess" hidden autocomplete="off">
+      <label for="gin">This one is a mystery. Can you name the animal?</label>
+      <div class="grow"><input id="gin" type="text" placeholder="Your guess" enterkeyhint="go"><button class="btn" type="submit">Guess</button><button class="btn" type="button" id="giveup" hidden>Show me</button></div>
+      <p id="gfb" aria-live="polite"></p>
+    </form>
   </div>
   <div class="row">
     <button class="btn" id="play" aria-pressed="false"><span aria-hidden="true">▶</span><span id="playlbl">Play</span></button>
-    <label class="chk"><input type="checkbox" id="all">All six</label>
+    <label class="chk"><input type="checkbox" id="all">All</label>
     <button class="btn" id="level">Balcony</button>
     <button class="btn" id="about" aria-expanded="false" aria-controls="drawer">What the bones hide</button>
   </div>

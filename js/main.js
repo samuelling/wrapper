@@ -21,6 +21,7 @@ const PT = HALL.platform.h + 0.03; // platform top
 
 // ---------- the procession ----------
 const LAYOUT = [
+  { id: 'rhino', x: 12.9, z: -1.5, yaw: -0.05, lift: 0 },
   { id: 'elephant', x: 6.9, z: 0.7, yaw: 0.04, lift: 0 },
   { id: 'bison', x: 1.5, z: -1.75, yaw: -0.06, lift: 0 },
   { id: 'crocodile', x: -2.5, z: 2.0, yaw: 0.05, lift: 0 },
@@ -58,6 +59,12 @@ function addPlaque(L, A) {
 
 // ---------- state ----------
 const state = { sel: 0, all: false, balcony: false, lockUntil: 0 };
+// the mystery specimen keeps its last stage locked until it is named
+const solved = new Set();
+try { JSON.parse(localStorage.getItem('wrapper-solved') || '[]').forEach(id => solved.add(id)); } catch (e) { }
+const locked = (sp) => !!(sp && sp.A.mystery && !solved.has(sp.A.id));
+const maxStage = (sp) => locked(sp) ? 2 : 3;
+let wrong = 0;
 let yaw = 0, pitch = 0;
 const pos = new THREE.Vector3(18.5, 1.62, 8.2);
 function look(target) {
@@ -74,7 +81,9 @@ function updateText() {
   const A = sp.A, C = A.curator, t = sp.stage, real = t >= 2.5;
   $('nm').textContent = real ? A.name : C.common;
   $('lt').textContent = real ? A.latin : C.name;
-  $('sz').textContent = real ? A.size : 'Restored by the curator';
+  $('sz').textContent = real ? A.size : A.mystery ? A.mystery.code + (locked(sp) ? ': identity withheld' : '') : 'Restored by the curator';
+  $('guess').hidden = !locked(sp);
+  stopsEl.children[3].classList.toggle('locked', locked(sp));
   const cap = $('cap');
   cap.className = 'cap' + (t >= 1.5 && t < 2.5 ? ' curator' : real ? ' reveal' : '');
   if (t < 0.5) cap.textContent = 'The bones as mounted. This is all the curator had to work from.';
@@ -88,8 +97,11 @@ function showSelected() {
   slider.value = Math.round(sp.stage * 100);
   updateText(); $('stagetag').textContent = stageLabel(sp.stage);
   [...stopsEl.children].forEach((b, i) => b.classList.toggle('on', Math.abs(sp.stage - i) < 0.5));
-  $('hides').innerHTML = ''; A.hides.forEach(h => { const li = document.createElement('li'); li.textContent = h; $('hides').appendChild(li); });
-  $('parallel').textContent = A.parallel;
+  $('hides').innerHTML = '';
+  const notes = locked(sp) ? ['Name this animal first. These notes would give it away.'] : A.hides;
+  notes.forEach(h => { const li = document.createElement('li'); li.textContent = h; $('hides').appendChild(li); });
+  $('parallel').textContent = locked(sp) ? '' : A.parallel;
+  if (locked(sp)) { $('gfb').textContent = ''; $('giveup').hidden = wrong < 2; }
   specimens.forEach((s, i) => { s.spot.intensity = i === state.sel ? 26 : 9; });
   try { if (location.hash.slice(1) !== A.id) history.replaceState(null, '', '#' + A.id); } catch (e) { }
   dirty = true;
@@ -102,15 +114,48 @@ function select(i, glideTo) {
 }
 function setStage(t, which) {
   const list = state.all ? specimens : [specimens[which ?? state.sel]];
-  list.forEach(s => s.setStage(t));
+  list.forEach(s => s.setStage(Math.min(t, maxStage(s))));
+  t = Math.min(t, maxStage(specimens[state.sel]));
   if (Math.abs(slider.value / 100 - t) > 0.004) slider.value = Math.round(t * 100);
   [...stopsEl.children].forEach((b, i) => b.classList.toggle('on', Math.abs(t - i) < 0.5));
   $('stagetag').textContent = stageLabel(t);
   updateText();
   dirty = true;
 }
-slider.addEventListener('input', () => { stopPlay(); state.lockUntil = performance.now() + 6000; setStage(slider.value / 100); });
-stopsEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; stopPlay(); state.lockUntil = performance.now() + 6000; tweenStage(+b.dataset.t); });
+slider.addEventListener('input', () => {
+  stopPlay(); state.lockUntil = performance.now() + 6000;
+  const sp = specimens[state.sel];
+  if (slider.value / 100 > maxStage(sp)) { slider.value = maxStage(sp) * 100; nudgeGuess(); }
+  setStage(slider.value / 100);
+});
+function nudgeGuess() { const g = $('gin'); if (!g) return; g.animate?.([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 260 }); if (!coarse) g.focus({ preventScroll: true }); }
+function reveal(sp, msg) {
+  solved.add(sp.A.id);
+  try { localStorage.setItem('wrapper-solved', JSON.stringify([...solved])); } catch (e) { }
+  $('gfb').textContent = msg; $('guess').hidden = true;
+  showSelected(); tweenStage(3);
+}
+$('guess').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const sp = specimens[state.sel]; if (!locked(sp)) return;
+  const g = $('gin').value.trim(); if (!g) return;
+  state.lockUntil = performance.now() + 15000;
+  if (sp.A.mystery.answers.test(g)) { $('gin').value = ''; reveal(sp, 'Yes!'); return; }
+  wrong++;
+  const near = /hippo|elephant|tapir|buffalo|bison|cow|pig|boar|ox\b|mammoth|triceratops/i.test(g);
+  const hint = sp.A.mystery.hints[Math.min(wrong - 1, sp.A.mystery.hints.length - 1)];
+  $('gfb').textContent = (near ? 'Close, but not that one. ' : 'Not quite. ') + 'Hint: ' + hint;
+  $('giveup').hidden = wrong < 2;
+  $('gin').select();
+});
+$('gin').addEventListener('focus', () => { state.lockUntil = performance.now() + 60000; });
+$('giveup').addEventListener('click', () => { const sp = specimens[state.sel]; if (locked(sp)) reveal(sp, ''); });
+stopsEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return; stopPlay(); state.lockUntil = performance.now() + 6000;
+  const sp = specimens[state.sel];
+  if (+b.dataset.t > maxStage(sp)) { tweenStage(maxStage(sp)); nudgeGuess(); return; }
+  tweenStage(+b.dataset.t);
+});
 $('prev').addEventListener('click', () => { state.lockUntil = performance.now() + 8000; select(state.sel - 1, true); });
 $('next').addEventListener('click', () => { state.lockUntil = performance.now() + 8000; select(state.sel + 1, true); });
 $('all').addEventListener('change', (e) => { state.all = e.target.checked; if (state.all) setStage(specimens[state.sel].stage); });
@@ -276,9 +321,9 @@ function frame(now) {
   if (playing && specimens.length) {
     if (hold > 0) hold -= dt;
     else {
-      const sp = specimens[state.sel]; const prev = sp.stage; let t = prev + playDir * dt * 0.5;
+      const sp = specimens[state.sel]; const prev = sp.stage, top = maxStage(sp); let t = prev + playDir * dt * 0.5;
       for (const k of [0, 1, 2, 3]) if ((prev - k) * (t - k) < 0) { t = k; hold = 1.4; }
-      if (t >= 3) { t = 3; playDir = -1; hold = 1.6; } if (t <= 0) { t = 0; playDir = 1; hold = 1.4; }
+      if (t >= top) { t = top; playDir = -1; hold = 1.6; } if (t <= 0) { t = 0; playDir = 1; hold = 1.4; }
       setStage(t); slider.value = t * 100;
     }
   }
@@ -325,7 +370,7 @@ async function boot() {
   const h = location.hash.slice(1), hi = specimens.findIndex(s => s.A.id === h);
   state.sel = hi >= 0 ? hi : 0;
   if (hi >= 0) { const v = viewpoint(hi); pos.copy(v.p); look(v.t); }
-  else look(new THREE.Vector3(4, 1.6, 0));
+  else look(new THREE.Vector3(8.5, 1.3, -0.6));
   state.lockUntil = performance.now() + 2500;
   showSelected(); setStage(2);
   $('loading').hidden = true;

@@ -648,6 +648,123 @@
   });
 
   // =====================================================================
+  // SPECIMEN 7: the mystery. A white rhinoceros, whose horns have no bone core.
+  // =====================================================================
+  A.push({
+    id: 'rhino', name: 'White rhinoceros', latin: 'Ceratotherium simum', size: 'about 1.7 m at the shoulder', unitsPerM: 200,
+    vox: 2.0, wrap: 14, skinT: 2.6, blend: 6, furAmp: 0, fur: false,
+    skinCol: [150, 132, 122], boneCol: [232, 224, 203], toothCol: [236, 228, 206],
+    mystery: {
+      code: 'Specimen 7', answers: /rhin/i,
+      hints: [
+        'A large plant-eater that still lives in Africa.',
+        'About two tonnes. It grazes with its head held low, cropping grass.',
+        'It is famous for something that leaves no trace in bone, only a rough patch where it grew.'
+      ]
+    },
+    coat(x, y) {
+      const n = fbm(x * 0.02, y * 0.02);
+      let c = mix([140, 132, 122], [104, 98, 92], n);
+      return mix(c, [128, 108, 88], sstep(470, 556, y) * 0.55);
+    },
+    hides: [
+      'Both horns are solid keratin, like a giant fingernail. No bone grows inside them, only a roughened patch on the nose and brow where they attach.',
+      'White rhinos have no front teeth at all. A broad, square upper lip does the cropping.',
+      'The hump behind the head is neck muscle on tall spines, and the hide is several centimetres thick, folded at the shoulders and legs.'
+    ],
+    parallel: 'Keratin horns rarely fossilise. We know the extinct woolly rhinoceros carried a long front horn mainly because a few horns survived frozen in Siberian permafrost, and because people painted them on cave walls.',
+    build(b) {
+      b.Z({ z: 46 });
+      b.far = true;
+      b.chain([[652, 362], [636, 442], [626, 516], [636, 552], [648, 558]], [13, 9, 6, 4.5], 1.2);
+      b.chain([[328, 308], [348, 420], [326, 504], [322, 548], [332, 558]], [12, 9, 6, 4.5], 1.2);
+      b.far = false;
+      b.Z();
+      b.spine([[724, 336], [700, 316], [676, 302], [654, 298]], 7, { r: 11, h: [8, 18, 10, 10, 10, 12, 16], tilt: 0.3, gap: 0.1 });
+      const th = b.spine([[650, 298], [600, 292], [550, 290], [500, 292], [450, 296], [400, 300]], 18, { r: 10, h: [70, 78, 76, 70, 62, 54, 46, 40, 35, 31, 28, 26, 24, 22, 21, 20, 20, 20], tilt: [0.5, 0.1], gap: 0.12, sw: 0.45 });
+      b.ribs(th, [100, 118, 128, 136, 140, 142, 142, 141, 139, 136, 132, 127, 121, 114, 106, 97, 87, 76], { r: [4.6, 3], sweep: [0.12, 0.27], end: [0.15, 0], w: [46, 58, 68, 76, 82, 86, 88, 90, 90, 90, 89, 88, 86, 83, 80, 76, 71, 65] });
+      b.tube('bone', [[680, 410], [640, 440], [580, 452], [540, 450]], [6, 5]);
+      b.spine([[396, 300], [365, 298], [335, 298]], 3, { r: 11, h: 26, tilt: -0.2, gap: 0.12 });
+      b.spine([[330, 298], [300, 300], [275, 306]], 4, { r: 10, h: 20, tilt: -0.1, gap: 0.02 });
+      b.spine([[270, 310], [256, 340], [250, 380], [248, 440]], 20, { r: [6, 2], h: [6, 0], tilt: 0, gap: 0.2, arch: false });
+      b.Z({ z: 72, mirror: true, th: 3, prof: 'slab' });
+      b.shape('bone', [[618, 228], [652, 226], [662, 262], [656, 330], [648, 362], [634, 364], [626, 330], [612, 262]]);
+      b.tube('bone', [[634, 232], [642, 300], [646, 350]], [3.2, 2], { z: 75 });
+      b.Z({ z: 50 });
+      b.bone(648, 360, 660, 440, 14, 10);
+      b.bone(650, 432, 658, 512, 6, 5, 1.25, { z: 56 });
+      b.bone(664, 446, 662, 512, 9, 8);
+      b.circle('bone', 646, 426, 9);
+      b.circle('bone', 660, 518, 9); b.circle('bone', 670, 520, 7);
+      b.chain([[664, 524], [672, 542], [680, 554], [688, 558]], [6, 4.5, 3.5], 1.2);
+      b.chain([[662, 524], [668, 542], [674, 554], [680, 558]], [5, 4, 3], 1.2, { z: 60 });
+      b.chain([[662, 524], [668, 542], [674, 554], [680, 558]], [5, 4, 3], 1.2, { z: 40 });
+      b.Z({ z: 42, mirror: true, th: 5, prof: 'slab' });
+      b.shape('bone', [[392, 262], [372, 252], [346, 268], [326, 292], [300, 304], [290, 318], [308, 326], [334, 316], [356, 294], [388, 278]]);
+      b.ellipse('hole', 314, 316, 8, 4, 0.2, { th: 60 });
+      b.Z({ z: 46 });
+      b.bone(334, 306, 366, 420, 13, 10);
+      b.ellipse('bone', 374, 412, 6, 8, 0.3);
+      b.bone(364, 422, 346, 500, 10, 8);
+      b.tube('bone', [[358, 426], [340, 500]], [3, 2.5], { z: 52 });
+      b.tube('bone', [[350, 500], [326, 490]], [7, 6]);
+      b.circle('bone', 348, 506, 8);
+      b.chain([[350, 510], [362, 538], [370, 552], [378, 558]], [6, 4.5, 3.5], 1.2);
+      b.chain([[348, 510], [356, 538], [362, 552], [368, 558]], [5, 4, 3], 1.2, { z: 55 });
+      b.chain([[348, 510], [356, 538], [362, 552], [368, 558]], [5, 4, 3], 1.2, { z: 37 });
+      b.Z();
+      b.local(726, 338, 1.36, 0.42, 'head', () => {
+        b.Z({ thx: [[-6, 26], [20, 30], [50, 24], [80, 15], [110, 11]] });
+        b.shape('bone', [[0, 4], [-6, -14], [-4, -34], [6, -38], [20, -28], [36, -22], [50, -20], [66, -22], [82, -24], [100, -22], [108, -18], [110, -12], [100, -10], [86, -8], [70, -2], [80, 6], [76, 10], [56, 12], [34, 12], [24, 10], [12, 10], [4, 8]]);
+        b.shape('recess', [[6, -26], [24, -20], [34, -12], [28, 2], [10, 2], [2, -12]], { depth: 0.45 });
+        b.circle('recess', 44, -6, 6, { depth: 0.8 });
+        b.shape('recess', [[72, -6], [86, -6], [94, -8], [86, -2], [76, 0]], { depth: 0.5 });
+        // the roughened patches where the horns attach
+        b.Z({ th: 12 });
+        for (let i = 0; i < 9; i++) b.ellipse('bone', 76 + i * 3.2, -24.5 - (i % 2) * 1.2, 2.4, 1.6, 0.3 * i);
+        for (let i = 0; i < 6; i++) b.ellipse('bone', 50 + i * 3, -21 - (i % 2), 2, 1.3, 0.4 * i);
+        b.Z({ zx: [[4, 20], [50, 16], [86, 8]], mirror: true, th: 4, prof: 'slab' });
+        b.shape('bone', [[4, 10], [6, -4], [12, -6], [18, 8], [30, 18], [60, 20], [78, 18], [84, 14], [86, 20], [80, 26], [60, 30], [36, 32], [16, 32], [4, 24]]);
+        b.shape('recess', [[8, 8], [14, 2], [22, 16], [12, 24]], { depth: 0.35 });
+        b.Z({ zx: [[10, 30], [50, 31]], mirror: true });
+        b.tube('bone', [[50, 4], [36, 6], [22, 6], [10, 4]], 3.5);
+        b.Z({ zx: [[34, 14], [76, 11]], mirror: true, th: 3, prof: 'slab' });
+        b.shape('teeth', [[34, 12], [76, 10], [76, 16], [34, 17]]);
+        b.shape('teeth', [[34, 19], [78, 18], [78, 22], [34, 23]]);
+        b.Z({ thx: [[-10, 34], [20, 40], [60, 30], [100, 22], [118, 22]] });
+        b.shape('tissue', [[-10, 4], [-10, -20], [-6, -40], [6, -44], [24, -34], [44, -28], [64, -28], [86, -28], [104, -24], [114, -14], [118, 0], [116, 14], [104, 22], [86, 30], [64, 36], [40, 40], [18, 40], [2, 32]]);
+        b.Z();
+        b.tube('tissue', [[84, -26], [86, -52], [92, -78], [102, -100]], [15, 11, 6, 1.5], { color: '#6f655a', fur: false, spec: 0.25 });
+        b.tube('tissue', [[54, -26], [56, -40], [60, -54]], [12, 7, 1.5], { color: '#6f655a', fur: false, spec: 0.25 });
+        b.shape('tissue', [[-6, -38], [-14, -62], [-8, -80], [4, -78], [8, -56], [6, -40]], { z: 24, mirror: true, th: 3, prof: 'slab' });
+        b.eye(44, -6, 3, { iris: '#3a2416', irisHi: '#6a4a2e', pupil: 'hbar', rS: 5.4 });
+      });
+      b.Z({ z: 46 });
+      b.far = true;
+      b.tube('tissue', [[652, 362], [636, 442], [628, 515]], [40, 30, 26]);
+      b.shape('tissue', [[602, 528], [654, 528], [660, 558], [598, 558]], { th: 22 });
+      b.tube('tissue', [[332, 320], [348, 420], [326, 505]], [40, 30, 24]);
+      b.shape('tissue', [[296, 528], [350, 528], [356, 558], [292, 558]], { th: 22 });
+      b.far = false;
+      b.Z({ th: 90 });
+      b.shape('tissue', [[680, 300], [660, 230], [620, 206], [560, 212], [500, 222], [440, 228], [380, 226], [320, 224], [270, 240], [246, 280], [244, 340], [258, 390], [290, 428], [350, 450], [440, 456], [520, 458], [600, 462], [660, 452], [700, 420], [716, 370]]);
+      b.Z();
+      b.tube('tissue', [[744, 330], [700, 300], [650, 270]], [52, 62, 70]);
+      b.ellipse('tissue', 640, 292, 38, 78, 0.15, { z: 62, mirror: true, rz: 24 });
+      b.ellipse('tissue', 690, 262, 50, 34, -0.2, { rz: 50 });
+      b.Z({ z: 50 });
+      b.tube('tissue', [[648, 350], [660, 440], [662, 515], [668, 540]], [46, 34, 28, 26]);
+      b.shape('tissue', [[640, 528], [696, 528], [702, 558], [636, 558]], { th: 26 });
+      b.shape('tissue', [[392, 250], [404, 330], [392, 420], [366, 450], [330, 446], [300, 400], [290, 320], [320, 260]], { z: 40, th: 44 });
+      b.tube('tissue', [[366, 420], [346, 500], [356, 535]], [32, 26, 24]);
+      b.shape('tissue', [[326, 528], [384, 528], [390, 558], [322, 558]], { th: 24 });
+      b.Z();
+      b.tube('tissue', [[270, 310], [256, 340], [250, 380], [248, 430]], [8, 4]);
+      b.ellipse('tissue', 248, 440, 5, 12, 0, { color: '#2a2420', rz: 5 });
+    }
+  });
+
+  // =====================================================================
   // THE CURATOR'S RECONSTRUCTIONS
   // A curator who has only ever seen these skeletons fleshes them out. Muscles are mostly right;
   // anything that leaves no trace in bone is missing or guessed from the wrong relatives.
@@ -893,6 +1010,48 @@
         b.ellipse('ctissue', 4, 8, 14, 10, 0, { rz: 34 });
         b.ellipse('ctissue', 30, -15, 7, 4, 0, { z: 13, mirror: true, rz: 6 });
         b.eye(30, -12.5, 3.6, { stage: 'C', iris: '#6a9a3a', irisHi: '#c8e070', pupil: 'round', z: 14 });
+      });
+    }
+  };
+
+  byId('rhino').curator = {
+    name: 'Rugonasus rostratus', common: 'Beaked shield-snout', fur: false, furAmp: 0,
+    label: 'With no front teeth, it cropped plants with a horny beak like a tortoise’s. The roughened bone on snout and brow carried two low horny shields, for shoving contests.',
+    reveal: 'In life: a white rhinoceros. Those rough patches anchor two horns of solid keratin with no bone core, and the “beak” is a broad, square lip.',
+    coat(x, y) {
+      const n = fbm(x * 0.03, y * 0.03);
+      let c = mix([118, 124, 132], [80, 86, 96], sstep(330, 250, y));
+      c = mix(c, [176, 168, 150], sstep(420, 452, y) * 0.7);
+      return mix(c, [96, 100, 108], (n - 0.45) * 0.6);
+    },
+    build(b) {
+      b.Z({ z: 46 });
+      b.far = true;
+      b.tube('ctissue', [[652, 362], [636, 442], [626, 516], [636, 552]], [34, 22, 14, 11]);
+      b.tube('ctissue', [[332, 320], [348, 420], [326, 505], [324, 550]], [34, 22, 14, 11]);
+      b.far = false;
+      b.Z({ th: 76 });
+      b.shape('ctissue', [[680, 300], [660, 232], [620, 214], [560, 220], [500, 230], [440, 236], [380, 236], [320, 234], [274, 248], [252, 286], [250, 340], [262, 386], [292, 420], [350, 440], [440, 446], [520, 448], [600, 452], [660, 444], [700, 414], [716, 370]]);
+      b.Z();
+      b.tube('ctissue', [[740, 330], [700, 302], [652, 276]], [44, 52, 60]);
+      b.ellipse('ctissue', 640, 292, 38, 78, 0.15, { z: 60, mirror: true, rz: 22 });
+      b.Z({ z: 50 });
+      b.tube('ctissue', [[648, 350], [660, 440], [662, 515], [672, 548]], [38, 24, 16, 12]);
+      b.shape('ctissue', [[392, 256], [402, 330], [390, 410], [366, 440], [332, 436], [304, 394], [296, 322], [322, 266]], { z: 40, th: 36 });
+      b.tube('ctissue', [[366, 420], [346, 500], [358, 548]], [24, 16, 12]);
+      b.Z();
+      b.tube('ctissue', [[270, 310], [256, 340], [250, 380], [248, 438]], [7, 2.5]);
+      b.local(726, 338, 1.36, 0.42, 'head', () => {
+        b.Z({ thx: [[-8, 30], [20, 34], [60, 26], [96, 16], [112, 12]] });
+        b.shape('ctissue', [[-8, 4], [-8, -20], [-4, -38], [6, -42], [22, -32], [44, -26], [64, -26], [86, -27], [102, -24], [110, -16], [110, -8], [98, -4], [84, 2], [80, 12], [64, 26], [40, 34], [18, 34], [2, 28]]);
+        // horny beak over the toothless front of the jaws
+        b.Z({ thx: [[70, 16], [100, 10], [116, 6]] });
+        b.shape('ctissue', [[70, -6], [92, -12], [110, -14], [118, -8], [116, 4], [104, 14], [88, 24], [78, 22], [76, 8]], { color: '#3d3730', fur: false, spec: 0.45 });
+        // two low shields on the roughened patches
+        b.Z();
+        b.ellipse('ctissue', 88, -29, 19, 8, -0.05, { rz: 16, color: '#9a8a6e', fur: false, spec: 0.35 });
+        b.ellipse('ctissue', 58, -25, 14, 6.5, 0, { rz: 14, color: '#9a8a6e', fur: false, spec: 0.35 });
+        b.eye(44, -6, 4, { stage: 'C', iris: '#a8742a', irisHi: '#e0b060', pupil: 'round' });
       });
     }
   };
